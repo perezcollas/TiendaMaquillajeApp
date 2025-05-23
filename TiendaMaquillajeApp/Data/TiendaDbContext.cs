@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using TiendaMaquillajeApp.Data;
 
 namespace TiendaMaquillajeApp.Data
 {
@@ -8,6 +9,7 @@ namespace TiendaMaquillajeApp.Data
         {
         }
 
-        public DbSet<Producto> Productos { get; set; } // Asegúrate de tener la clase Producto creada
+        public DbSet<Producto> Productos { get; set; }
+        public DbSet<Cliente> Clientes { get; set; }
     }
 }

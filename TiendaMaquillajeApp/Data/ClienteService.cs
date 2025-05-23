@@ -1,11 +1,10 @@
-﻿using System.Collections.Generic;
-using System.Threading.Tasks;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using TiendaMaquillajeApp.Data;
 
-namespace TiendaMaquillajeApp.Services
+
+namespace TiendaMaquillajeApp.Data
 {
-    public class ClienteService : IClienteService 
+    public class ClienteService : IClienteService
     {
         private readonly TiendaDbContext _context;
 
@@ -14,15 +13,7 @@ namespace TiendaMaquillajeApp.Services
             _context = context;
         }
 
-        public async Task<List<Cliente>> ObtenerClientesAsync()
-        {
-            return await _context.Clientes.ToListAsync();
-        }
-
-        public async Task<Cliente?> ObtenerClientePorIdAsync(int idCliente)
-        {
-            return await _context.Clientes.FindAsync(idCliente);
-        }
+        public async Task<List<Cliente>> ObtenerClientesAsync() => await _context.Clientes.ToListAsync();
 
         public async Task AgregarClienteAsync(Cliente cliente)
         {
@@ -30,7 +21,7 @@ namespace TiendaMaquillajeApp.Services
             await _context.SaveChangesAsync();
         }
 
-        public async Task ActualizarClienteAsync(Cliente cliente)
+        public async Task EditarClienteAsync(Cliente cliente)
         {
             _context.Clientes.Update(cliente);
             await _context.SaveChangesAsync();
@@ -46,4 +37,6 @@ namespace TiendaMaquillajeApp.Services
             }
         }
     }
+
 }
+
