@@ -1,6 +1,6 @@
 using TiendaMaquillajeApp.Components;
 using Microsoft.EntityFrameworkCore;
-using TiendaMaquillajeApp.Data; // <- Ajusta si tu DbContext está en otro lugar
+using TiendaMaquillajeApp.Data; 
 
 var builder = WebApplication.CreateBuilder(args);
 
