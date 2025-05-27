@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using TiendaMaquillajeApp.Data;
 
@@ -11,9 +12,11 @@ using TiendaMaquillajeApp.Data;
 namespace TiendaMaquillajeApp.Migrations
 {
     [DbContext(typeof(TiendaDbContext))]
-    partial class TiendaDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250527023341_CrearTablaVenta")]
+    partial class CrearTablaVenta
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -107,7 +110,6 @@ namespace TiendaMaquillajeApp.Migrations
                         .HasColumnType("int");
 
                     b.Property<decimal>("Total")
-                        .HasPrecision(18, 2)
                         .HasColumnType("decimal(18,2)");
 
                     b.HasKey("IdVenta");

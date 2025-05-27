@@ -1,17 +1,17 @@
-using TiendaMaquillajeApp.Components;
+﻿using TiendaMaquillajeApp.Components;
 using Microsoft.EntityFrameworkCore;
-using TiendaMaquillajeApp.Data; 
+using TiendaMaquillajeApp.Data;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// AGREGAS ESTO
+// Configuración del DbContext
 builder.Services.AddDbContext<TiendaDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("TiendaConnection")));
 
+// Servicios
 builder.Services.AddScoped<IProductoService, ProductoService>();
 builder.Services.AddScoped<IClienteService, ClienteService>();
-
-
+builder.Services.AddScoped<IVentaService, VentaService>(); // 👈 Nuevo servicio para Ventas
 
 // Add services to the container.
 builder.Services.AddRazorComponents()

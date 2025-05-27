@@ -1,0 +1,153 @@
+﻿@page "/ventas"
+@using TiendaMaquillajeApp.Data
+@inject IVentaService VentaService
+@inject IClienteService ClienteService
+@inject IProductoService ProductoService
+
+@rendermode InteractiveServer
+
+<h3>Lista de Ventas</h3>
+
+@if (ventas == null || clientes == null || productos == null)
+{
+    <p>Cargando datos...</p>
+}
+else
+{
+    <EditForm Model="nuevaVenta" OnValidSubmit="AgregarVenta">
+        <h4>Agregar Nueva Venta</h4>
+        <select @bind="nuevaVenta.IdCliente" class="form-select">
+            <option value="">Seleccione Cliente</option>
+            @foreach (var cliente in clientes)
+            {
+                <option value="@cliente.IdCliente">@cliente.Nombre</option>
+            }
+        </select>
+        <select @bind="nuevaVenta.IdProducto" class="form-select">
+            <option value="">Seleccione Producto</option>
+            @foreach (var producto in productos)
+            {
+                <option value="@producto.IdProducto">@producto.Nombre</option>
+            }
+        </select>
+        <input type="number" @bind="nuevaVenta.Cantidad" placeholder="Cantidad" class="form-control" />
+        <input type="number" @bind="nuevaVenta.Total" placeholder="Total" class="form-control" />
+        <button type="submit" class="btn btn-success">Agregar</button>
+    </EditForm>
+
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Cliente</th>
+                <th>Producto</th>
+                <th>Fecha</th>
+                <th>Cantidad</th>
+                <th>Total</th>
+                <th>Acciones</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var venta in ventas)
+            {
+                if (ventaEditando?.IdVenta == venta.IdVenta)
+                {
+                    <tr>
+                        <td>
+                            <select @bind="ventaEditando.IdCliente" class="form-select">
+                                @foreach (var cliente in clientes)
+                                {
+                                    <option value="@cliente.IdCliente">@cliente.Nombre</option>
+                                }
+                            </select>
+                        </td>
+                        <td>
+                            <select @bind="ventaEditando.IdProducto" class="form-select">
+                                @foreach (var producto in productos)
+                                {
+                                    <option value="@producto.IdProducto">@producto.Nombre</option>
+                                }
+                            </select>
+                        </td>
+                        <td><input type="date" @bind="ventaEditando.FechaVenta" class="form-control" /></td>
+                        <td><input type="number" @bind="ventaEditando.Cantidad" class="form-control" /></td>
+                        <td><input type="number" @bind="ventaEditando.Total" class="form-control" /></td>
+                        <td>
+                            <button class="btn btn-success btn-sm" @onclick="() => GuardarCambios(ventaEditando)">Guardar</button>
+                            <button class="btn btn-secondary btn-sm" @onclick="CancelarEdicion">Cancelar</button>
+                        </td>
+                    </tr>
+                }
+                else
+                {
+                    <tr>
+                        <td>@venta.Cliente?.Nombre</td>
+                        <td>@venta.Producto?.Nombre</td>
+                        <td>@venta.FechaVenta.ToShortDateString()</td>
+                        <td>@venta.Cantidad</td>
+                        <td>@venta.Total</td>
+                        <td>
+                            <button class="btn btn-warning btn-sm" @onclick="() => Editar(venta)">Editar</button>
+                            <button class="btn btn-danger btn-sm" @onclick="() => Eliminar(venta.IdVenta)">Eliminar</button>
+                        </td>
+                    </tr>
+                }
+            }
+        </tbody>
+    </table>
+}
+
+@code {
+    private List<Venta>? ventas;
+    private List<Cliente>? clientes;
+    private List<Producto>? productos;
+    private Venta? ventaEditando;
+    private Venta nuevaVenta = new Venta { FechaVenta = DateTime.Today };
+
+    protected override async Task OnInitializedAsync()
+    {
+        await CargarDatos();
+    }
+
+    private async Task CargarDatos()
+    {
+        ventas = await VentaService.ObtenerVentasAsync();
+        clientes = await ClienteService.ObtenerClientesAsync();
+        productos = await ProductoService.ObtenerProductosAsync();
+    }
+
+    private void Editar(Venta venta)
+    {
+        ventaEditando = new Venta
+            {
+                IdVenta = venta.IdVenta,
+                IdCliente = venta.IdCliente,
+                IdProducto = venta.IdProducto,
+                FechaVenta = venta.FechaVenta,
+                Cantidad = venta.Cantidad,
+                Total = venta.Total
+            };
+    }
+
+    private async Task GuardarCambios(Venta venta)
+    {
+        await VentaService.EditarVentaAsync(venta);
+        ventaEditando = null;
+        await CargarDatos();
+    }
+
+    private void CancelarEdicion() => ventaEditando = null;
+
+    private async Task Eliminar(int idVenta)
+    {
+        await VentaService.EliminarVentaAsync(idVenta);
+        await CargarDatos();
+    }
+
+    private async Task AgregarVenta()
+    {
+        nuevaVenta.FechaVenta = DateTime.Today;
+        await VentaService.AgregarVentaAsync(nuevaVenta);
+        nuevaVenta = new Venta { FechaVenta = DateTime.Today };
+        await CargarDatos();
+    }
+}
