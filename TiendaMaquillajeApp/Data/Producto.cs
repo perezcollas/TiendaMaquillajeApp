@@ -14,8 +14,7 @@ public class Producto
     [Required, StringLength(50)]
     public string Marca { get; set; } = string.Empty;
 
-    [Range(0.01, double.MaxValue)]
-    public decimal Precio { get; set; }
+    public decimal Precio { get; set; } // Sin atributo [Precision]
 
     [Range(0, int.MaxValue)]
     public int Stock { get; set; }

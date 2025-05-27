@@ -9,6 +9,8 @@ builder.Services.AddDbContext<TiendaDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("TiendaConnection")));
 
 builder.Services.AddScoped<IProductoService, ProductoService>();
+builder.Services.AddScoped<IClienteService, ClienteService>();
+
 
 
 // Add services to the container.

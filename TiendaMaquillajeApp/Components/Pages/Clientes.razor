@@ -1,0 +1,100 @@
+﻿@page "/clientes"
+@using TiendaMaquillajeApp.Data
+@inject IClienteService ClienteService
+@rendermode InteractiveServer
+
+<h3>Lista de Clientes</h3>
+
+@if (clientes == null)
+{
+    <p>Cargando clientes...</p>
+}
+else if (!clientes.Any())
+{
+    <p>No hay clientes registrados.</p>
+}
+else
+{
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Nombre</th>
+                <th>Correo</th>
+                <th>Teléfono</th>
+                <th>Dirección</th>
+                <th>Acciones</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var cliente in clientes)
+            {
+                if (clienteEditando?.IdCliente == cliente.IdCliente)
+                {
+                    <tr>
+                        <td><input @bind="clienteEditando.Nombre" class="form-control" /></td>
+                        <td><input @bind="clienteEditando.Correo" class="form-control" /></td>
+                        <td><input @bind="clienteEditando.Telefono" class="form-control" /></td>
+                        <td><input @bind="clienteEditando.Direccion" class="form-control" /></td>
+                        <td>
+                            <button class="btn btn-success btn-sm" @onclick="() => GuardarCambios(clienteEditando)">Guardar</button>
+                            <button class="btn btn-secondary btn-sm" @onclick="CancelarEdicion">Cancelar</button>
+                        </td>
+                    </tr>
+                }
+                else
+                {
+                    <tr>
+                        <td>@cliente.Nombre</td>
+                        <td>@cliente.Correo</td>
+                        <td>@cliente.Telefono</td>
+                        <td>@cliente.Direccion</td>
+                        <td>
+                            <button class="btn btn-warning btn-sm" @onclick="@(() => Editar(cliente))">Editar</button>
+                            <button class="btn btn-danger btn-sm" @onclick="@(() => Eliminar(cliente.IdCliente))">Eliminar</button>
+                        </td>
+                    </tr>
+                }
+            }
+        </tbody>
+    </table>
+}
+
+@code {
+    private List<Cliente>? clientes;
+    private Cliente? clienteEditando;
+
+    protected override async Task OnInitializedAsync()
+    {
+        clientes = await ClienteService.ObtenerClientesAsync();
+    }
+
+    private void Editar(Cliente cliente)
+    {
+        clienteEditando = new Cliente
+            {
+                IdCliente = cliente.IdCliente,
+                Nombre = cliente.Nombre,
+                Correo = cliente.Correo,
+                Telefono = cliente.Telefono,
+                Direccion = cliente.Direccion
+            };
+    }
+
+    private async Task GuardarCambios(Cliente cliente)
+    {
+        await ClienteService.EditarClienteAsync(cliente);
+        clienteEditando = null;
+        clientes = await ClienteService.ObtenerClientesAsync();
+    }
+
+    private void CancelarEdicion()
+    {
+        clienteEditando = null;
+    }
+
+    private async Task Eliminar(int idCliente)
+    {
+        await ClienteService.EliminarClienteAsync(idCliente);
+        clientes = await ClienteService.ObtenerClientesAsync();
+    }
+}

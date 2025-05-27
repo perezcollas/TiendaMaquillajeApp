@@ -1,6 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using TiendaMaquillajeApp.Data;
-
+using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace TiendaMaquillajeApp.Data
 {
@@ -13,7 +14,8 @@ namespace TiendaMaquillajeApp.Data
             _context = context;
         }
 
-        public async Task<List<Cliente>> ObtenerClientesAsync() => await _context.Clientes.ToListAsync();
+        public async Task<List<Cliente>> ObtenerClientesAsync() =>
+            await _context.Clientes.ToListAsync();
 
         public async Task AgregarClienteAsync(Cliente cliente)
         {
@@ -21,10 +23,19 @@ namespace TiendaMaquillajeApp.Data
             await _context.SaveChangesAsync();
         }
 
+        // ← ESTE ES EL MÉTODO CORREGIDO
         public async Task EditarClienteAsync(Cliente cliente)
         {
-            _context.Clientes.Update(cliente);
-            await _context.SaveChangesAsync();
+            var clienteExistente = await _context.Clientes.FindAsync(cliente.IdCliente);
+            if (clienteExistente != null)
+            {
+                clienteExistente.Nombre = cliente.Nombre;
+                clienteExistente.Correo = cliente.Correo;
+                clienteExistente.Telefono = cliente.Telefono;
+                clienteExistente.Direccion = cliente.Direccion;
+
+                await _context.SaveChangesAsync();
+            }
         }
 
         public async Task EliminarClienteAsync(int idCliente)
@@ -37,6 +48,4 @@ namespace TiendaMaquillajeApp.Data
             }
         }
     }
-
 }
-
