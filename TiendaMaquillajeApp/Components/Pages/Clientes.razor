@@ -9,63 +9,100 @@
 {
     <p>Cargando clientes...</p>
 }
-else if (!clientes.Any())
-{
-    <p>No hay clientes registrados.</p>
-}
 else
 {
-    <table class="table">
-        <thead>
-            <tr>
-                <th>Nombre</th>
-                <th>Correo</th>
-                <th>Teléfono</th>
-                <th>Dirección</th>
-                <th>Acciones</th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach (var cliente in clientes)
-            {
-                if (clienteEditando?.IdCliente == cliente.IdCliente)
+    <h4>Agregar Nuevo Cliente</h4>
+    <EditForm Model="nuevoCliente" OnValidSubmit="AgregarCliente">
+        <DataAnnotationsValidator />
+        <ValidationSummary />
+
+        <div>
+            <label>Nombre:</label>
+            <InputText @bind-Value="nuevoCliente.Nombre" class="form-control" />
+        </div>
+        <div>
+            <label>Correo:</label>
+            <InputText @bind-Value="nuevoCliente.Correo" class="form-control" />
+        </div>
+        <div>
+            <label>Teléfono:</label>
+            <InputText @bind-Value="nuevoCliente.Telefono" class="form-control" />
+        </div>
+        <div>
+            <label>Dirección:</label>
+            <InputText @bind-Value="nuevoCliente.Direccion" class="form-control" />
+        </div>
+        <button type="submit" class="btn btn-primary mt-2">Agregar</button>
+    </EditForm>
+
+    <hr />
+
+    @if (!clientes.Any())
+    {
+        <p>No hay clientes registrados.</p>
+    }
+    else
+    {
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Nombre</th>
+                    <th>Correo</th>
+                    <th>Teléfono</th>
+                    <th>Dirección</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var cliente in clientes)
                 {
-                    <tr>
-                        <td><input @bind="clienteEditando.Nombre" class="form-control" /></td>
-                        <td><input @bind="clienteEditando.Correo" class="form-control" /></td>
-                        <td><input @bind="clienteEditando.Telefono" class="form-control" /></td>
-                        <td><input @bind="clienteEditando.Direccion" class="form-control" /></td>
-                        <td>
-                            <button class="btn btn-success btn-sm" @onclick="() => GuardarCambios(clienteEditando)">Guardar</button>
-                            <button class="btn btn-secondary btn-sm" @onclick="CancelarEdicion">Cancelar</button>
-                        </td>
-                    </tr>
+                    if (clienteEditando?.IdCliente == cliente.IdCliente)
+                    {
+                        <tr>
+                            <td><input @bind="clienteEditando.Nombre" class="form-control" /></td>
+                            <td><input @bind="clienteEditando.Correo" class="form-control" /></td>
+                            <td><input @bind="clienteEditando.Telefono" class="form-control" /></td>
+                            <td><input @bind="clienteEditando.Direccion" class="form-control" /></td>
+                            <td>
+                                <button class="btn btn-success btn-sm" @onclick="() => GuardarCambios(clienteEditando)">Guardar</button>
+                                <button class="btn btn-secondary btn-sm" @onclick="CancelarEdicion">Cancelar</button>
+                            </td>
+                        </tr>
+                    }
+                    else
+                    {
+                        <tr>
+                            <td>@cliente.Nombre</td>
+                            <td>@cliente.Correo</td>
+                            <td>@cliente.Telefono</td>
+                            <td>@cliente.Direccion</td>
+                            <td>
+                                <button class="btn btn-warning btn-sm" @onclick="@(() => Editar(cliente))">Editar</button>
+                                <button class="btn btn-danger btn-sm" @onclick="@(() => Eliminar(cliente.IdCliente))">Eliminar</button>
+                            </td>
+                        </tr>
+                    }
                 }
-                else
-                {
-                    <tr>
-                        <td>@cliente.Nombre</td>
-                        <td>@cliente.Correo</td>
-                        <td>@cliente.Telefono</td>
-                        <td>@cliente.Direccion</td>
-                        <td>
-                            <button class="btn btn-warning btn-sm" @onclick="@(() => Editar(cliente))">Editar</button>
-                            <button class="btn btn-danger btn-sm" @onclick="@(() => Eliminar(cliente.IdCliente))">Eliminar</button>
-                        </td>
-                    </tr>
-                }
-            }
-        </tbody>
-    </table>
+            </tbody>
+        </table>
+    }
 }
 
 @code {
     private List<Cliente>? clientes;
     private Cliente? clienteEditando;
+    private Cliente nuevoCliente = new Cliente();
 
     protected override async Task OnInitializedAsync()
     {
         clientes = await ClienteService.ObtenerClientesAsync();
+    }
+
+    private async Task AgregarCliente()
+    {
+        await ClienteService.AgregarClienteAsync(nuevoCliente);
+        nuevoCliente = new Cliente(); // Limpiar formulario
+        clientes = await ClienteService.ObtenerClientesAsync(); // Refrescar lista
     }
 
     private void Editar(Cliente cliente)
