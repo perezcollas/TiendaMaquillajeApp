@@ -34,28 +34,35 @@ namespace TiendaMaquillajeApp.Data
         public async Task AgregarVentaAsync(Venta venta)
         {
             _context.Ventas.Add(venta);
-            // (Opcional) Ajustar stock del producto:
+
             var producto = await _context.Productos.FindAsync(venta.IdProducto);
             if (producto != null)
             {
                 producto.Stock -= venta.Cantidad;
                 _context.Productos.Update(producto);
             }
+
             await _context.SaveChangesAsync();
         }
 
-        public async Task EditarVentaAsync(Venta venta)   // ← Aquí implementamos EditarVentaAsync
+        public async Task EditarVentaAsync(Venta venta)
         {
-            var ventaExistente = await _context.Ventas.FindAsync(venta.IdVenta);
+            var ventaExistente = await _context.Ventas.AsNoTracking().FirstOrDefaultAsync(v => v.IdVenta == venta.IdVenta);
             if (ventaExistente != null)
             {
-                ventaExistente.IdCliente = venta.IdCliente;
-                ventaExistente.IdProducto = venta.IdProducto;
-                ventaExistente.FechaVenta = venta.FechaVenta;
-                ventaExistente.Cantidad = venta.Cantidad;
-                ventaExistente.Total = venta.Total;
+                var productoExistente = await _context.Productos.FindAsync(ventaExistente.IdProducto);
+                if (productoExistente != null)
+                {
+                    productoExistente.Stock += ventaExistente.Cantidad;
+                }
 
-                _context.Ventas.Update(ventaExistente);
+                var productoNuevo = await _context.Productos.FindAsync(venta.IdProducto);
+                if (productoNuevo != null)
+                {
+                    productoNuevo.Stock -= venta.Cantidad;
+                }
+
+                _context.Ventas.Update(venta);
                 await _context.SaveChangesAsync();
             }
         }
@@ -65,6 +72,12 @@ namespace TiendaMaquillajeApp.Data
             var venta = await _context.Ventas.FindAsync(idVenta);
             if (venta != null)
             {
+                var producto = await _context.Productos.FindAsync(venta.IdProducto);
+                if (producto != null)
+                {
+                    producto.Stock += venta.Cantidad;
+                }
+
                 _context.Ventas.Remove(venta);
                 await _context.SaveChangesAsync();
             }

@@ -14,10 +14,10 @@
 }
 else
 {
-    <EditForm Model="nuevaVenta" OnValidSubmit="AgregarVenta">
-        <h4>Agregar Nueva Venta</h4>
+    <EditForm Model="nuevaVenta" OnValidSubmit="@(esEdicion ? EditarVenta : AgregarVenta)">
+        <h4>@(esEdicion ? "Editar Venta" : "Agregar Nueva Venta")</h4>
 
-        <div>
+        <div class="mb-3">
             <label>Cliente:</label>
             <select @bind="nuevaVenta.IdCliente" class="form-select">
                 <option value="">Seleccione Cliente</option>
@@ -28,9 +28,9 @@ else
             </select>
         </div>
 
-        <div>
+        <div class="mb-3">
             <label>Producto:</label>
-            <select class="form-select" @bind="_idProductoSeleccionado">
+            <select @bind="_idProductoSeleccionado" class="form-select">
                 <option value="">Seleccione Producto</option>
                 @foreach (var producto in productos)
                 {
@@ -44,24 +44,26 @@ else
             }
         </div>
 
-        <div>
+        <div class="mb-3">
             <label>Cantidad:</label>
-            <input type="number" @bind="nuevaVenta.Cantidad" class="form-control" @oninput="CalcularTotal" />
+            <input type="number" @bind="nuevaVenta.Cantidad" @bind:event="oninput" class="form-control" @onchange="ActualizarTotal" />
         </div>
 
-        <div>
+        <div class="mb-3">
             <label>Total:</label>
-            <input type="number" value="@nuevaVenta.Total" class="form-control" readonly />
+            <input type="number" class="form-control" value="@nuevaVenta.Total" readonly />
         </div>
 
-        <button type="submit" class="btn btn-success">Agregar</button>
+        <button type="submit" class="btn btn-success me-2">@(esEdicion ? "Guardar Cambios" : "Agregar")</button>
+        <button type="button" class="btn btn-secondary" @onclick="CancelarEdicion" hidden="@(esEdicion ? false : true)">Cancelar</button>
+
         @if (!string.IsNullOrEmpty(mensajeError))
         {
-            <p style="color:red">@mensajeError</p>
+            <p class="text-danger mt-2">@mensajeError</p>
         }
     </EditForm>
 
-    <table class="table">
+    <table class="table mt-4">
         <thead>
             <tr>
                 <th>Cliente</th>
@@ -82,6 +84,7 @@ else
                     <td>@venta.Cantidad</td>
                     <td>@venta.Total</td>
                     <td>
+                        <button class="btn btn-warning btn-sm me-1" @onclick="() => Editar(venta)">Editar</button>
                         <button class="btn btn-danger btn-sm" @onclick="() => Eliminar(venta.IdVenta)">Eliminar</button>
                     </td>
                 </tr>
@@ -97,6 +100,7 @@ else
     private Producto? productoSeleccionado;
     private Venta nuevaVenta = new Venta { FechaVenta = DateTime.Today };
     private string? mensajeError;
+    private bool esEdicion = false;
 
     private int _idProductoSeleccionado
     {
@@ -104,8 +108,8 @@ else
         set
         {
             nuevaVenta.IdProducto = value;
-            productoSeleccionado = productos.FirstOrDefault(p => p.IdProducto == value);
-            CalcularTotal();
+            productoSeleccionado = productos?.FirstOrDefault(p => p.IdProducto == value);
+            ActualizarTotal();
         }
     }
 
@@ -121,7 +125,7 @@ else
         productos = await ProductoService.ObtenerProductosAsync();
     }
 
-    private void CalcularTotal()
+    private void ActualizarTotal()
     {
         if (productoSeleccionado != null && nuevaVenta.Cantidad > 0)
         {
@@ -150,14 +154,57 @@ else
 
         nuevaVenta.FechaVenta = DateTime.Today;
         await VentaService.AgregarVentaAsync(nuevaVenta);
-
-        // Actualizar stock en producto (opcional)
-        productoSeleccionado.Stock -= nuevaVenta.Cantidad;
-        await ProductoService.ActualizarProductoAsync(productoSeleccionado);
+        await CargarDatos();
 
         nuevaVenta = new Venta { FechaVenta = DateTime.Today };
         productoSeleccionado = null;
+    }
+
+    private void Editar(Venta venta)
+    {
+        nuevaVenta = new Venta
+        {
+            IdVenta = venta.IdVenta,
+            IdCliente = venta.IdCliente,
+            IdProducto = venta.IdProducto,
+            Cantidad = venta.Cantidad,
+            FechaVenta = venta.FechaVenta,
+            Total = venta.Total
+        };
+        _idProductoSeleccionado = venta.IdProducto;
+        esEdicion = true;
+    }
+
+    private async Task EditarVenta()
+    {
+        if (productoSeleccionado == null)
+        {
+            mensajeError = "Por favor seleccione un producto.";
+            return;
+        }
+
+        var ventaOriginal = ventas?.FirstOrDefault(v => v.IdVenta == nuevaVenta.IdVenta);
+        var stockDisponible = productoSeleccionado.Stock + (ventaOriginal?.Cantidad ?? 0);
+        if (nuevaVenta.Cantidad > stockDisponible)
+        {
+            mensajeError = "Cantidad excede stock disponible.";
+            return;
+        }
+
+        await VentaService.EditarVentaAsync(nuevaVenta);
         await CargarDatos();
+
+        nuevaVenta = new Venta { FechaVenta = DateTime.Today };
+        productoSeleccionado = null;
+        esEdicion = false;
+    }
+
+    private void CancelarEdicion()
+    {
+        nuevaVenta = new Venta { FechaVenta = DateTime.Today };
+        productoSeleccionado = null;
+        esEdicion = false;
+        mensajeError = null;
     }
 
     private async Task Eliminar(int idVenta)
