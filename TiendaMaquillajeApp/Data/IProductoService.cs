@@ -8,6 +8,9 @@ namespace TiendaMaquillajeApp.Data
         Task<List<Producto>> ObtenerProductosAsync();
         Task ActualizarProductoAsync(Producto producto);
         Task EliminarProductoAsync(int id);
+        Task AgregarProductoAsync(Producto producto);
 
     }
+       
+
 }

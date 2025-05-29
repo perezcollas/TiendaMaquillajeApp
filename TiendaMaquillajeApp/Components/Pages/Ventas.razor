@@ -163,14 +163,14 @@ else
     private void Editar(Venta venta)
     {
         nuevaVenta = new Venta
-        {
-            IdVenta = venta.IdVenta,
-            IdCliente = venta.IdCliente,
-            IdProducto = venta.IdProducto,
-            Cantidad = venta.Cantidad,
-            FechaVenta = venta.FechaVenta,
-            Total = venta.Total
-        };
+            {
+                IdVenta = venta.IdVenta,
+                IdCliente = venta.IdCliente,
+                IdProducto = venta.IdProducto,
+                Cantidad = venta.Cantidad,
+                FechaVenta = venta.FechaVenta,
+                Total = venta.Total
+            };
         _idProductoSeleccionado = venta.IdProducto;
         esEdicion = true;
     }

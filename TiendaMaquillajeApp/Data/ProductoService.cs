@@ -40,5 +40,11 @@ namespace TiendaMaquillajeApp.Data
                 await _context.SaveChangesAsync();
             }
         }
+
+        public async Task AgregarProductoAsync(Producto producto)
+        {
+            _context.Productos.Add(producto);
+            await _context.SaveChangesAsync();
+        }
     }
 }
